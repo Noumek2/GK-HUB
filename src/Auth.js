@@ -1,6 +1,5 @@
-import React from 'react';
-import { useState } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css'
+import React, { useState, useEffect } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 const Auth = () => {
@@ -9,21 +8,51 @@ const Auth = () => {
     const [password, setPassword] = useState('');
     const [confirmpassword, setConfirmpassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState(0);
 
-    const handleSubmit = (e) => {
+    const totalFields = 4;
+
+    useEffect(() => {
+        const filledFields = [name, email, password, confirmpassword].filter(field => field).length;
+        const newProgress = (filledFields / totalFields) * 100;
+        setProgress(newProgress);
+    }, [name, email, password, confirmpassword]);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setLoading(true);
+
         if (!name || !email || !password || !confirmpassword) {
             setError('Please fill the required fields');
+            setLoading(false);
             return;
         }
 
         if (password !== confirmpassword) {
-            setError('Password do not match');
-            return
+            setError('Passwords do not match');
+            setLoading(false);
+            return;
         }
+
+        // Simulate API call
         console.log('Name:', name);
         console.log('Email:', email);
-        console.log('Password:', password);
+        // Do not log passwords in production!
+
+        setName('');
+        setEmail('');
+        setPassword('');
+        setConfirmpassword('');
+        setProgress(0);
+        setLoading(false);
+    };
+
+    const getProgressBarColor = () => {
+        if (progress < 50) return 'bg-danger';
+        if (progress < 100) return 'bg-warning';
+        return 'bg-success';
     };
 
     return (
@@ -32,8 +61,9 @@ const Auth = () => {
                 <h3 className="text-center mb-4">GK Trips - Register</h3>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-3">
-                        <label className="form-label">Name</label>
+                        <label className="form-label" htmlFor="name">Name</label>
                         <input
+                            id="name"
                             type="text"
                             className="form-control"
                             value={name}
@@ -43,8 +73,9 @@ const Auth = () => {
                     </div>
 
                     <div className="mb-3">
-                        <label className="form-label">Email</label>
+                        <label className="form-label" htmlFor="email">Email</label>
                         <input
+                            id="email"
                             type="email"
                             className="form-control"
                             value={email}
@@ -54,8 +85,9 @@ const Auth = () => {
                     </div>
 
                     <div className="mb-3">
-                        <label className="form-label">Password</label>
+                        <label className="form-label" htmlFor="password">Password</label>
                         <input
+                            id="password"
                             type="password"
                             className="form-control"
                             value={password}
@@ -65,8 +97,9 @@ const Auth = () => {
                     </div>
 
                     <div className="mb-3">
-                        <label className="form-label">Confirm Password</label>
+                        <label className="form-label" htmlFor="confirmpassword">Confirm Password</label>
                         <input
+                            id="confirmpassword"
                             type="password"
                             className="form-control"
                             value={confirmpassword}
@@ -77,8 +110,21 @@ const Auth = () => {
 
                     {error && <p className="text-danger">{error}</p>}
 
-                    <button type="submit" className="btn btn-primary w-100">
-                        Register
+                    <div className="progress mb-3">
+                        <div
+                            className={`progress-bar ${getProgressBarColor()}`}
+                            role="progressbar"
+                            style={{ width: `${progress}%` }}
+                            aria-valuenow={progress}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        >
+                            {progress.toFixed(0)}%
+                        </div>
+                    </div>
+
+                    <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                        {loading ? 'Loading...' : 'Register'}
                     </button>
                 </form>
             </div>
@@ -87,3 +133,4 @@ const Auth = () => {
 }
 
 export default Auth;
+// Note: In a real application, you would handle the API call to register the user here.
